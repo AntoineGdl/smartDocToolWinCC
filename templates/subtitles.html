@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sous-titres - {{ title }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        .toc-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #f5f5f5;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .toc-item {
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        h1 {
+            color: #333;
+            margin-top: 0;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="toc-container">
+        <h1>Sous-titres - {{ title }}</h1>
+        <ul>
+            {% for subtitle in subtitles %}
+            <li class="toc-item">{{ subtitle }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+</body>
+</html>
