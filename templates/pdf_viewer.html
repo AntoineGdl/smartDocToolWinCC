@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualisation du document</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+        }
+        .pdf-container {
+            width: 100%;
+            height: 100vh;
+            overflow: auto;
+            position: relative;
+        }
+        #pdfContainer {
+            width: 100%;
+            position: relative;
+        }
+        .nav-controls {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            z-index: 1000;
+            background: rgba(255,255,255,0.8);
+            padding: 5px 10px;
+            border-radius: 5px;
+        }
+        .nav-controls a {
+            color: #007bff;
+            text-decoration: none;
+            margin-right: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="pdf-container">
+        <iframe
+            src="{{ url_for('static', filename=pdf_path) }}#page={{ page }}"
+            width="100%"
+            height="100%"
+            frameborder="0">
+        </iframe>
+    </div>
+
+    <script>
+        // Forcer le chargement de la page spécifique
+        async function searchAndHighlight(text, pageNum) {
+    try {
+        const page = await pdfDoc.getPage(pageNum);
+        const textContent = await page.getTextContent();
+
+        // Ignorer si le texte de section est vide
+        if (!text || text === "None") {
+            document.getElementById('sectionInfo').textContent = 'Affichage de la page entière';
+            return;
+        }
+
+        // Normaliser le texte recherché
+        const normalizedSearchText = text.replace(/\s+/g, ' ').trim().toLowerCase();
+
+        // Ignorer les recherches trop courtes
+        if (normalizedSearchText.length < 3) {
+            document.getElementById('sectionInfo').textContent = 'Texte de recherche trop court';
+            return;
+        }
+
+        // Priorité aux correspondances exactes
+        let bestMatch = null;
+        let bestScore = 0;
+
+        for (let i = 0; i < textContent.items.length; i++) {
+            const item = textContent.items[i];
+            const itemText = item.str.toLowerCase();
+
+            // Exact match gets highest priority
+            if (itemText === normalizedSearchText) {
+                bestMatch = item;
+                break;
+            }
+
+            // Otherwise check for partial matches but with higher quality
+            if (itemText.includes(normalizedSearchText) &&
+                itemText.length - normalizedSearchText.length < 10) {
+                // Meilleur match si plus proche en longueur
+                const score = normalizedSearchText.length / itemText.length;
+                if (score > bestScore) {
+                    bestScore = score;
+                    bestMatch = item;
+                }
+            }
+        }
+
+        if (bestMatch) {
+            // Créer un élément de surbrillance
+            const viewport = page.getViewport({ scale: 1.2 });
+            const highlight = document.createElement('div');
+            highlight.classList.add('highlight');
+
+            // Définir la position de la surbrillance
+            highlight.style.left = `${bestMatch.transform[4]}px`;
+            highlight.style.top = `${bestMatch.transform[5] - bestMatch.height}px`;
+            highlight.style.width = `${bestMatch.width}px`;
+            highlight.style.height = `${bestMatch.height}px`;
+
+            document.getElementById('pdfContainer').appendChild(highlight);
+            highlight.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            document.getElementById('sectionInfo').textContent = `Section: ${text}`;
+        } else {
+            console.log(`Texte "${normalizedSearchText}" non trouvé sur la page ${pageNum}`);
+            document.getElementById('sectionInfo').textContent = 'Section non trouvée sur cette page';
+        }
+    } catch (error) {
+        console.error('Erreur lors de la recherche de texte:', error);
+    }
+}
+    </script>
+</body>
+</html>
