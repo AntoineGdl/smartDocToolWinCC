@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ subtitle }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .sections-container {
+            margin: 20px 0;
+        }
+
+        .section-dropdown {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 16px;
+            margin-bottom: 15px;
+        }
+
+        .btn {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 12px 24px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            width: 100%;
+        }
+
+        .btn:hover {
+            background-color: #0069d9;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            color: #6c757d;
+            text-decoration: none;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>{{ subtitle }}</h1>
+        <div class="content">
+            {% if sections %}
+            <div class="sections-container">
+                <h3>Sections disponibles:</h3>
+                <select id="section-select" class="section-dropdown">
+                    <option value="">Sélectionnez une section</option>
+                    {% for section in sections %}
+                    <option value="{{ section_to_page[section] }}">
+                        {{ section.split('...')[0].strip() if '...' in section else section }}
+                    </option>
+                    {% endfor %}
+                </select>
+                <button onclick="goToSelectedPage()" class="btn">Voir cette section</button>
+            </div>
+            {% endif %}
+        </div>
+        <div class="navigation">
+            <a href="/" class="back-link">Retour aux titres</a>
+        </div>
+    </div>
+
+    <script>
+    function goToSelectedPage() {
+        const select = document.getElementById('section-select');
+        if (!select) {
+            console.error("Élément select non trouvé");
+            return;
+        }
+
+        const pageNumber = select.value;
+        if (!pageNumber) {
+            alert("Veuillez sélectionner une section");
+            return;
+        }
+
+        const sectionText = select.options[select.selectedIndex].text;
+        console.log("Redirection vers la page:", pageNumber, "Section:", sectionText);
+
+        // Redirection vers le PDF avec le paramètre de section
+        window.location.href = `/pdf/${pageNumber}?section=${encodeURIComponent(sectionText)}`;
+    }
+    </script>
+</body>
+</html>
